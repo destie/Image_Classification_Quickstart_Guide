@@ -1,0 +1,90 @@
+#######################################################################################################################################
+################################The following code sets up the model itself############################################################
+##########For this model we use ResNet - but feel free to check out tensorflow.applications online for more build in models to try#####
+
+from keras.applications.resnet50 import ResNet50
+from tensorflow.keras import models
+
+#Change these parameters to customize your model:
+modeltype = ResNet50(include_top=False, weights='imagenet', input_shape=(512,512,3))
+modelsavefile = 'filepathtowhereyouwanttosaveyourmodel.h5'
+epocsnum = 50 #Put your epochs here
+logsavefile = 'filepathtowhereyouwanttosaveyourlogfile.csv'
+modelsummaryfile =  'filepathtowhereyouwanttosaveyourmodelsummary.txt'
+epochtimes = 'filepathtowhereyouwanttosaveyourtimes.txt'
+savefigure = 'filepathtosaveyourresultsfigure.png'
+
+
+#Prepare the model, for this we're using a pretrained model on "imagenet" data
+modnet = modeltype
+output = modnet.layers[-1].output
+output2 = keras.layers.Flatten()(output)
+modnet = keras.Model(modnet.input, outputs=output2)
+
+#Set layers to not trainable to just use the last layer for transfer learning and provide a preliminary summary
+for layer in modnet.layers:
+    layer.trainable = False
+modnet.summary()
+
+from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Dropout, InputLayer
+from tensorflow.keras.models import Sequential
+from tensorflow.keras import optimizers
+
+#Setting the model type as sequential, activation as relu, and metrics as accuracy, MAE, and MSE
+model = Sequential()
+model.add(modnet)
+#Change your model layers here - We use relu for binary, however you might want to experiment with others for multiclass
+model.add(Dense(512, activation='relu', input_dim=(IMG_HEIGHT,IMG_WIDTH,3)))
+model.add(Dropout(0.3))
+#Change your model layers here - We use relu for sigmoid, however you might want to experiment with softmax for multiclass
+model.add(Dense(1, activation='sigmoid'))
+#Change your model compilation here - We use binary_crossentropy for binary, however you'd want to use categorical for multiclass
+model.compile(loss='binary_crossentropy',
+              #Change your learning rate and metrics here
+              optimizer=optimizers.RMSprop(lr=2e-5),
+              metrics=['accuracy', 'AUC', 'mean_absolute_error', 'mean_squared_error'])
+model.summary()
+
+#To save the model summary and later epoch training times    
+with open(modelsummaryfile, 'w') as f:
+    model.summary(print_fn=lambda x: f.write(x + '\n'))
+
+#To save the output file    
+from keras.callbacks import CSVLogger
+csv_logger = CSVLogger(logsavefile, append=True, separator=';')
+
+#To get computation time 
+import time
+class TimeHistory(keras.callbacks.Callback):
+    def on_train_begin(self, logs={}):
+        self.times = []
+
+    def on_epoch_begin(self, batch, logs={}):
+        self.epoch_time_start = time.time()
+
+    def on_epoch_end(self, batch, logs={}):
+        self.times.append(time.time() - self.epoch_time_start)
+time_callback = TimeHistory()
+
+
+#Training the model 
+history = model.fit(train_ds.repeat(),
+                    steps_per_epoch=int(100/batch_size),
+                    epochs=epocsnum,
+                    validation_data=val_ds.repeat(),
+                    validation_steps=int(50/batch_size),
+                    callbacks=[csv_logger, time_callback])
+time_callback.times
+
+#To save the epochtimes 
+with open(epochtimes, 'w') as f:
+    model.summary(print_fn=lambda x: f.write(x + '\n'))
+
+#To plot the model
+from plot_keras_history import plot_history
+import matplotlib.pyplot as plt  
+plot_history(history, path=savefigure)
+plt.show()
+
+#To save the model
+model.save(modelsavefile)
