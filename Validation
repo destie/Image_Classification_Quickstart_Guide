@@ -1,0 +1,20 @@
+##########################################################################################################################################
+##############################This code validates on a single image or multiple images for your separate holdout dataset##################
+
+#Change the 512 here to your image height and width respectively
+img = cv2.imread('filepathhere')
+img = cv2.resize(img,(512,512))
+img = np.reshape(img,[1,512,512,3])
+
+classes = model.predict_classes(img)
+
+#Validate on a whole new dataset:
+
+#Change these parameters for your data
+img_height = 
+img_width = 
+
+val_ds = tf.keras.preprocessing.image_dataset_from_directory(
+  directory,
+  image_size=(img_height, img_width))
+accuracy = model.evaluate(val_ds)
