@@ -1,0 +1,30 @@
+############################################################################################################################################
+############################The following code generates two datasets from one directory - a training and testing set#######################
+#########By changing the directory to two directories and getting rid of the split, you could also point this to multiple directories#######
+#Import packages
+import tensorflow as tf
+from tensorflow import keras
+
+#Change these for your model 
+IMG_HEIGHT = ##Put your image height here
+IMG_WIDTH = ##Put your image width here
+batch_size = ##Put your batch size here
+directory = ##Put your directory here
+
+#To make training set
+train_ds = tf.keras.preprocessing.image_dataset_from_directory(
+      directory,
+      validation_split=0.3,
+      subset="training",
+      seed=123,
+      image_size=(IMG_HEIGHT, IMG_WIDTH),
+      batch_size=batch_size)
+
+#To make validation set
+val_ds = tf.keras.preprocessing.image_dataset_from_directory(
+      directory,
+      validation_split=0.30,
+      subset="validation",
+      seed=123,
+      image_size=(IMG_HEIGHT, IMG_WIDTH),
+      batch_size=batch_size)
