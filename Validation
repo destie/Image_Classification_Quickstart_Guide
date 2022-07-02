@@ -48,3 +48,27 @@ plot_roc_curve (fpr,tpr)
 
 #Generate the AUC score
 auc_score_PX=roc_auc_score(labels,preds)
+
+
+#Cross Validation
+from sklearn.model_selection import KFold
+
+sklearn.model_selection.KFold(n_splits=5, *, shuffle=False, random_state=None) 
+
+
+j = 0
+
+for train_idx, val_idx in list(kfold.split(train_x,train_y)):
+    x_train_df = df.iloc[train_idx]
+    x_valid_df = df.iloc[val_idx]
+    j+=1
+
+  train_ds = tf.keras.preprocessing.image_dataset_from_directory(
+  directory,
+  validation_split=0.2,
+  subset="training",
+… 
+###Same code as your model goes here then evaluate for each kfold
+   accuracy = model.evaluate( val_ds)[1])
+   print(“Kfold = “ + str(j) + str(accuracy))
+
