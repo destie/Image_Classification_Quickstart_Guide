@@ -14,7 +14,37 @@ classes = model.predict_classes(img)
 img_height = 
 img_width = 
 
+#Load your  model
+model = tf.keras.models.load_model(r'C:\Users\Satvik\Desktop\ProstateX2\CSvsNCS\csvsncsresnetreger1.h5') 
+
+#Create your validation directory - this should mirror the data used to create the model
 val_ds = tf.keras.preprocessing.image_dataset_from_directory(
   directory,
   image_size=(img_height, img_width))
 accuracy = model.evaluate(val_ds)
+
+
+
+#How to get ROC and AUC from model
+from sklearn.metrics import roc_curve,roc_auc_score
+preds = model.predict(val_ds)
+
+#Import packages and generate labels for data
+import numpy as np
+labels = np.concatenate([y for x, y in val_ds], axis=0)
+
+#Calculate metrics
+fpr, tpr, threshold = roc_curve(labels, preds)
+
+#Plot the ROC curve
+def plot_roc_curve(fpr,tpr): 
+    plt.plot(fpr,tpr) 
+    plt.axis([0,1,0,1]) 
+    plt.xlabel('False Positive Rate') 
+    plt.ylabel('True Positive Rate') 
+    plt.show()    
+  
+plot_roc_curve (fpr,tpr)
+
+#Generate the AUC score
+auc_score_PX=roc_auc_score(labels,preds)
